@@ -21,10 +21,9 @@ export async function GET(request: NextRequest) {
         )
       }
 
-      // Get all active fruits
+      // Get fruits (schema has no 'active' or 'symbol' fields)
       const fruits = await prisma.fruit.findMany({
-        where: { active: true },
-        select: { id: true, symbol: true, name: true, category: true }
+        select: { id: true, name: true, category: true }
       })
 
       if (fruits.length === 0) {
@@ -77,8 +76,9 @@ export async function GET(request: NextRequest) {
           const changeAmount = lastPrice ? newClose - lastPrice.close : 0
           const changePercentage = lastPrice ? (changeAmount / lastPrice.close) * 100 : 0
 
+          const symbol = fruit.name.slice(0, 3).toUpperCase()
           priceUpdates.push({
-            symbol: fruit.symbol,
+            symbol,
             price: newClose,
             change: parseFloat(changeAmount.toFixed(2)),
             changePercentage: parseFloat(changePercentage.toFixed(2)),
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
           await CacheService.setPrices(fruit.id, '1m', [priceData], true)
 
         } catch (error) {
-          console.error(`Error updating price for fruit ${fruit.symbol}:`, error)
+          console.error(`Error updating price for fruit ${fruit.name}:`, error)
         }
       }
 
