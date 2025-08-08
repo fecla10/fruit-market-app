@@ -40,3 +40,6 @@ export const config = {
 } satisfies NextAuthConfig
 
 export const { handlers, auth, signIn, signOut } = NextAuth(config)
+
+// Export for backward compatibility
+export const authOptions = config

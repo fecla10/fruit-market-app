@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
 }
 
 // Broadcast price updates
-export function broadcastPriceUpdate(symbol: string, priceData: any) {
+function broadcastPriceUpdate(symbol: string, priceData: any) {
   if (io) {
     io.to(`price:${symbol}`).emit('price_update', {
       symbol,
@@ -151,7 +151,7 @@ export function broadcastPriceUpdate(symbol: string, priceData: any) {
 }
 
 // Broadcast bulk price updates
-export function broadcastBulkPriceUpdate(updates: Array<{ symbol: string; [key: string]: any }>) {
+function broadcastBulkPriceUpdate(updates: Array<{ symbol: string; [key: string]: any }>) {
   if (io) {
     updates.forEach(update => {
       io?.to(`price:${update.symbol}`).emit('price_update', {
@@ -169,7 +169,7 @@ export function broadcastBulkPriceUpdate(updates: Array<{ symbol: string; [key: 
 }
 
 // Send alert to specific user
-export function sendUserAlert(userId: string, alertData: any) {
+function sendUserAlert(userId: string, alertData: any) {
   if (io) {
     io.to(`alerts:${userId}`).emit('alert_triggered', {
       ...alertData,
@@ -179,7 +179,7 @@ export function sendUserAlert(userId: string, alertData: any) {
 }
 
 // Send market update to all connected clients
-export function broadcastMarketUpdate(updateData: any) {
+function broadcastMarketUpdate(updateData: any) {
   if (io) {
     io.emit('market_update', {
       ...updateData,
@@ -189,7 +189,7 @@ export function broadcastMarketUpdate(updateData: any) {
 }
 
 // Send system notification
-export function sendSystemNotification(notification: any, targetRoom?: string) {
+function sendSystemNotification(notification: any, targetRoom?: string) {
   if (io) {
     const target = targetRoom ? io.to(targetRoom) : io
     target.emit('system_notification', {
@@ -200,7 +200,7 @@ export function sendSystemNotification(notification: any, targetRoom?: string) {
 }
 
 // Get Socket.IO server instance (for other parts of the app)
-export function getSocketIOServer() {
+function getSocketIOServer() {
   if (!io) {
     initializeSocketIO()
   }
@@ -208,7 +208,7 @@ export function getSocketIOServer() {
 }
 
 // Health check for WebSocket server
-export async function checkWebSocketHealth() {
+async function checkWebSocketHealth() {
   try {
     const server = getSocketIOServer()
     return {
