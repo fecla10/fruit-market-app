@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Fruit Market Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .features {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .features h3 {
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+
+        .features ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4ade80;
+            font-weight: bold;
+        }
+
+        .retry-btn {
+            background: linear-gradient(45deg, #4ade80, #22c55e);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .retry-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .home-btn {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .home-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: white;
+        }
+
+        .status {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .icon {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🍎📱</div>
+        
+        <h1>You're Offline</h1>
+        
+        <p>
+            Don't worry! You can still use many features of Fruit Market Tracker 
+            while offline. Your data will sync when you're back online.
+        </p>
+        
+        <div class="features">
+            <h3>Available Offline:</h3>
+            <ul>
+                <li>View cached price data</li>
+                <li>Browse your watchlist</li>
+                <li>Check portfolio performance</li>
+                <li>View analytics dashboard</li>
+                <li>Access saved fruit information</li>
+            </ul>
+        </div>
+        
+        <button class="retry-btn" onclick="checkConnection()">
+            <span id="retry-text">Check Connection</span>
+        </button>
+        
+        <a href="/" class="home-btn">Go to Dashboard</a>
+        
+        <div class="status">
+            <span id="connection-status">Checking connection...</span>
+            <span class="animate-pulse">●</span>
+        </div>
+    </div>
+
+    <script>
+        let retryCount = 0;
+        const maxRetries = 5;
+
+        function updateStatus(message, isConnected = false) {
+            const status = document.getElementById('connection-status');
+            const pulse = document.querySelector('.animate-pulse');
+            
+            status.textContent = message;
+            pulse.style.color = isConnected ? '#4ade80' : '#ef4444';
+        }
+
+        async function checkConnection() {
+            const retryBtn = document.getElementById('retry-text');
+            const originalText = retryBtn.textContent;
+            
+            retryBtn.textContent = 'Checking...';
+            
+            try {
+                const response = await fetch('/', { 
+                    method: 'HEAD',
+                    cache: 'no-cache'
+                });
+                
+                if (response.ok) {
+                    updateStatus('Connected! Redirecting...', true);
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
+                    return;
+                }
+            } catch (error) {
+                console.log('Still offline:', error);
+            }
+            
+            retryCount++;
+            
+            if (retryCount >= maxRetries) {
+                updateStatus('Still offline. Try again in a moment.');
+                retryBtn.textContent = 'Try Again';
+                setTimeout(() => {
+                    retryCount = 0;
+                }, 5000);
+            } else {
+                updateStatus(`Offline (${retryCount}/${maxRetries})`);
+                retryBtn.textContent = originalText;
+            }
+        }
+
+        // Auto-check connection every 30 seconds
+        setInterval(checkConnection, 30000);
+
+        // Check connection on page load
+        window.addEventListener('load', checkConnection);
+
+        // Listen for online/offline events
+        window.addEventListener('online', () => {
+            updateStatus('Connected! Redirecting...', true);
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+        });
+
+        window.addEventListener('offline', () => {
+            updateStatus('Connection lost');
+        });
+
+        // Initial status
+        if (navigator.onLine) {
+            checkConnection();
+        } else {
+            updateStatus('You are offline');
+        }
+    </script>
+</body>
+</html>

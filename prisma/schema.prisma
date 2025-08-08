@@ -1,0 +1,129 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  role          Role      @default(USER)
+  watchlists    Watchlist[]
+  alerts        Alert[]
+  portfolios    Portfolio[]
+  notes         Note[]
+  preferences   Json?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Fruit {
+  id            String    @id @default(cuid())
+  name          String    @unique
+  category      String
+  variety       String?
+  unit          String
+  description   String?
+  imageUrl      String?
+  prices        Price[]
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+
+  @@map("fruits")
+}
+
+model Price {
+  id            String    @id @default(cuid())
+  fruitId       String
+  fruit         Fruit     @relation(fields: [fruitId], references: [id])
+  open          Float
+  high          Float
+  low           Float
+  close         Float
+  volume        Float?
+  date          DateTime
+  source        String
+  region        String?
+  createdAt     DateTime  @default(now())
+  
+  @@index([fruitId, date])
+  @@index([date])
+  @@map("prices")
+}
+
+model Watchlist {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  fruitId       String
+  order         Int
+  createdAt     DateTime  @default(now())
+
+  @@unique([userId, fruitId])
+  @@map("watchlists")
+}
+
+model Alert {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  fruitId       String
+  type          AlertType
+  threshold     Float
+  condition     String
+  active        Boolean   @default(true)
+  triggered     Boolean   @default(false)
+  lastTriggered DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@map("alerts")
+}
+
+model Portfolio {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  name          String
+  holdings      Json
+  value         Float
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("portfolios")
+}
+
+model Note {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  fruitId       String
+  content       String
+  chartData     Json?
+  createdAt     DateTime  @default(now())
+
+  @@map("notes")
+}
+
+enum Role {
+  USER
+  PREMIUM
+  ADMIN
+}
+
+enum AlertType {
+  PRICE_ABOVE
+  PRICE_BELOW
+  PERCENT_CHANGE
+  VOLUME_SPIKE
+}
