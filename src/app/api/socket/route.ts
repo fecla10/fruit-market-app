@@ -31,8 +31,8 @@ function initializeSocketIO() {
     // Store user session in socket
     socket.on('authenticate', async (data) => {
       try {
-        // Verify user session
-        const session = await getServerSession(authOptions)
+        // Verify user session (relax typing for serverless build)
+        const session: any = await getServerSession(authOptions)
         if (session?.user) {
           socket.data.user = session.user
           socket.join(`user:${session.user.id}`)
