@@ -65,13 +65,17 @@ export async function GET(request: NextRequest) {
 
       // 4. Clean up expired sessions (if using database sessions)
       try {
-        const expiredSessions = await prisma.session.deleteMany({
-          where: {
-            expires: { lt: new Date() }
-          }
-        })
-        cleanupResults.expiredSessions = expiredSessions.count
-        console.log(`Deleted ${expiredSessions.count} expired sessions`)
+        // Access optional Prisma model via any to avoid TS error when model is not in schema
+        const sessionModel = (prisma as any).session
+        if (sessionModel?.deleteMany) {
+          const expiredSessions = await sessionModel.deleteMany({
+            where: { expires: { lt: new Date() } },
+          })
+          cleanupResults.expiredSessions = expiredSessions?.count ?? 0
+          console.log(`Deleted ${expiredSessions?.count ?? 0} expired sessions`)
+        } else {
+          console.log('Session cleanup skipped (not using database sessions)')
+        }
       } catch (error) {
         // Session cleanup might fail if not using database sessions
         console.log('Session cleanup skipped (not using database sessions)')
@@ -98,12 +102,16 @@ export async function GET(request: NextRequest) {
       // 6. Clean up portfolio transactions older than 5 years (keep for tax purposes)
       const fiveYearsAgo = new Date(Date.now() - 5 * 365 * 24 * 60 * 60 * 1000)
       try {
-        const deletedTransactions = await prisma.portfolioTransaction.deleteMany({
-          where: {
-            createdAt: { lt: fiveYearsAgo }
-          }
-        })
-        console.log(`Deleted ${deletedTransactions.count} old portfolio transactions`)
+        // Access optional Prisma model via any to avoid TS error when model is not in schema
+        const portfolioTxModel = (prisma as any).portfolioTransaction
+        if (portfolioTxModel?.deleteMany) {
+          const deletedTransactions = await portfolioTxModel.deleteMany({
+            where: { createdAt: { lt: fiveYearsAgo } },
+          })
+          console.log(`Deleted ${deletedTransactions?.count ?? 0} old portfolio transactions`)
+        } else {
+          console.log('Portfolio transaction cleanup skipped (model not present)')
+        }
       } catch (error) {
         console.error('Portfolio transaction cleanup failed:', error)
       }
