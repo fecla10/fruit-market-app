@@ -6,6 +6,26 @@ const nextConfig = {
     },
   },
   
+  // Turbopack configuration
+  turbopack: {},
+  
+  // Disable static optimization for API routes that need dynamic data
+  staticPageGenerationTimeout: 60,
+  
+  // Image optimization
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.vercel-storage.com',
+      },
+      {
+        protocol: 'https', 
+        hostname: 'images.unsplash.com',
+      }
+    ],
+  },
+  
   // PWA Configuration
   async headers() {
     return [

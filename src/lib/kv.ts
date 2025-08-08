@@ -1,4 +1,10 @@
-import { kv } from '@vercel/kv'
+// Optional Vercel KV import - gracefully handle if not available
+let kv: any = null
+try {
+  kv = require('@vercel/kv').kv
+} catch (error) {
+  console.log('[KV] Vercel KV not available, caching disabled')
+}
 
 // Cache keys
 export const CACHE_KEYS = {
@@ -29,6 +35,7 @@ export const CACHE_TTL = {
 export class CacheService {
   // Generic cache operations
   static async get<T>(key: string): Promise<T | null> {
+    if (!kv) return null
     try {
       const cached = await kv.get(key)
       return cached as T | null
@@ -39,6 +46,7 @@ export class CacheService {
   }
 
   static async set<T>(key: string, value: T, ttl?: number): Promise<void> {
+    if (!kv) return
     try {
       if (ttl) {
         await kv.setex(key, ttl, JSON.stringify(value))
@@ -51,6 +59,7 @@ export class CacheService {
   }
 
   static async del(key: string): Promise<void> {
+    if (!kv) return
     try {
       await kv.del(key)
     } catch (error) {
@@ -59,6 +68,7 @@ export class CacheService {
   }
 
   static async exists(key: string): Promise<boolean> {
+    if (!kv) return false
     try {
       const result = await kv.exists(key)
       return result === 1
