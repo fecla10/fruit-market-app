@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    ppr: true, // Partial Prerendering
-    reactCompiler: true, // React Compiler
     serverActions: {
       allowedOrigins: ['localhost:3000', 'vercel.app'],
     },

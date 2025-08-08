@@ -19,6 +19,17 @@ export function formatPrice(
 }
 
 /**
+ * Format currency (alias for formatPrice for compatibility)
+ */
+export function formatCurrency(
+  amount: number,
+  currency: string = 'USD',
+  decimals: number = 2
+): string {
+  return formatPrice(amount, currency, decimals)
+}
+
+/**
  * Format percentage change with + or - sign
  */
 export function formatPercentage(
