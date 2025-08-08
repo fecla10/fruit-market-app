@@ -25,16 +25,11 @@ export async function GET(request: NextRequest) {
       const alerts = await prisma.alert.findMany({
         where: {
           active: true,
-          triggered: false
+          triggered: false,
         },
         include: {
-          fruit: {
-            select: { id: true, symbol: true, name: true }
-          },
-          user: {
-            select: { id: true, email: true, name: true }
-          }
-        }
+          user: { select: { id: true, email: true, name: true } },
+        },
       })
 
       if (alerts.length === 0) {
@@ -50,6 +45,15 @@ export async function GET(request: NextRequest) {
       // Process each alert
       for (const alert of alerts) {
         try {
+          // Fetch fruit details (Alert model has only fruitId)
+          const fruit = await prisma.fruit.findUnique({
+            where: { id: alert.fruitId },
+            select: { id: true, symbol: true, name: true },
+          })
+          if (!fruit) {
+            console.log(`Fruit not found for alert ${alert.id}`)
+            continue
+          }
           // Get the latest price for this fruit
           const latestPrice = await prisma.price.findFirst({
             where: { fruitId: alert.fruitId },
@@ -57,7 +61,7 @@ export async function GET(request: NextRequest) {
           })
 
           if (!latestPrice) {
-            console.log(`No price data found for fruit ${alert.fruit.symbol}`)
+            console.log(`No price data found for fruit ${fruit.symbol}`)
             continue
           }
 
@@ -68,12 +72,12 @@ export async function GET(request: NextRequest) {
           switch (alert.type) {
             case 'PRICE_ABOVE':
               shouldTrigger = latestPrice.close > alert.threshold
-              alertMessage = `${alert.fruit.name} price reached $${latestPrice.close.toFixed(2)} (above $${alert.threshold})`
+              alertMessage = `${fruit.name} price reached $${latestPrice.close.toFixed(2)} (above $${alert.threshold})`
               break
 
             case 'PRICE_BELOW':
               shouldTrigger = latestPrice.close < alert.threshold
-              alertMessage = `${alert.fruit.name} price dropped to $${latestPrice.close.toFixed(2)} (below $${alert.threshold})`
+              alertMessage = `${fruit.name} price dropped to $${latestPrice.close.toFixed(2)} (below $${alert.threshold})`
               break
 
             case 'PERCENT_CHANGE':
@@ -90,7 +94,7 @@ export async function GET(request: NextRequest) {
               if (previousPrice) {
                 const percentChange = ((latestPrice.close - previousPrice.close) / previousPrice.close) * 100
                 shouldTrigger = Math.abs(percentChange) >= alert.threshold
-                alertMessage = `${alert.fruit.name} changed ${percentChange >= 0 ? '+' : ''}${percentChange.toFixed(2)}% in 24h`
+                alertMessage = `${fruit.name} changed ${percentChange >= 0 ? '+' : ''}${percentChange.toFixed(2)}% in 24h`
               }
               break
 
@@ -108,7 +112,7 @@ export async function GET(request: NextRequest) {
               if (avgVolumeResult._avg.volume && latestPrice.volume) {
                 const volumeIncrease = ((latestPrice.volume - avgVolumeResult._avg.volume) / avgVolumeResult._avg.volume) * 100
                 shouldTrigger = volumeIncrease >= alert.threshold
-                alertMessage = `${alert.fruit.name} volume spiked +${volumeIncrease.toFixed(2)}% (${latestPrice.volume.toLocaleString()})`
+                alertMessage = `${fruit.name} volume spiked +${volumeIncrease.toFixed(2)}% (${latestPrice.volume.toLocaleString()})`
               }
               break
           }
@@ -131,7 +135,7 @@ export async function GET(request: NextRequest) {
               type: 'PRICE_ALERT',
               title: `Alert Triggered: ${alert.fruit.name}`,
               message: alertMessage,
-              fruitSymbol: alert.fruit.symbol,
+              fruitSymbol: fruit.symbol,
               timestamp: new Date(),
               priority: determineAlertPriority(alert.type, alert.threshold),
               userId: alert.userId
@@ -142,7 +146,7 @@ export async function GET(request: NextRequest) {
             // Send real-time notification
             sendUserAlert(alert.userId, notification)
 
-            console.log(`Alert triggered for user ${alert.user.email}: ${alertMessage}`)
+            console.log(`Alert triggered for user ${alert.user?.email}: ${alertMessage}`)
           }
 
         } catch (error) {
