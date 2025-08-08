@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { MCPService } from '@/lib/mcp'
 import { prisma } from '@/lib/db'
-import { sendUserAlert } from '@/app/api/socket/route'
+import { sendUserAlert } from '@/lib/realtime'
 import CacheService from '@/lib/kv'
 
 // Cron job to process alert conditions every minute

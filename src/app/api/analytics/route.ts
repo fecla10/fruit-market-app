@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       const fruitId = searchParams.get('fruitId')
 
       // Get user session for authentication
-      const session = await getServerSession(authOptions)
+      const session: any = await getServerSession(authOptions)
       
       let analyticsData
 

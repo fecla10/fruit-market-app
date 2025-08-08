@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { MCPService } from '@/lib/mcp'
 import { prisma } from '@/lib/db'
-import { broadcastBulkPriceUpdate } from '@/app/api/socket/route'
+import { broadcastBulkPriceUpdate } from '@/lib/realtime'
 import CacheService from '@/lib/kv'
 
 // Cron job to update fruit prices every 5 minutes
