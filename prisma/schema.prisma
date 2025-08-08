@@ -37,6 +37,7 @@ model Fruit {
   description   String?
   imageUrl      String?
   prices        Price[]
+  watchlists    Watchlist[]
   metadata      Json?
   createdAt     DateTime  @default(now())
 
@@ -67,6 +68,7 @@ model Watchlist {
   userId        String
   user          User      @relation(fields: [userId], references: [id])
   fruitId       String
+  fruit         Fruit     @relation(fields: [fruitId], references: [id])
   order         Int
   createdAt     DateTime  @default(now())
 
