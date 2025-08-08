@@ -48,12 +48,13 @@ export async function GET(request: NextRequest) {
           // Fetch fruit details (Alert model has only fruitId)
           const fruit = await prisma.fruit.findUnique({
             where: { id: alert.fruitId },
-            select: { id: true, symbol: true, name: true },
+            select: { id: true, name: true },
           })
           if (!fruit) {
             console.log(`Fruit not found for alert ${alert.id}`)
             continue
           }
+          const computedSymbol = fruit.name.slice(0, 3).toUpperCase()
           // Get the latest price for this fruit
           const latestPrice = await prisma.price.findFirst({
             where: { fruitId: alert.fruitId },
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
           })
 
           if (!latestPrice) {
-            console.log(`No price data found for fruit ${fruit.symbol}`)
+            console.log(`No price data found for fruit ${computedSymbol}`)
             continue
           }
 
@@ -133,9 +134,9 @@ export async function GET(request: NextRequest) {
             const notification = {
               id: `alert_${alert.id}_${Date.now()}`,
               type: 'PRICE_ALERT',
-              title: `Alert Triggered: ${alert.fruit.name}`,
+              title: `Alert Triggered: ${fruit.name}`,
               message: alertMessage,
-              fruitSymbol: fruit.symbol,
+              fruitSymbol: computedSymbol,
               timestamp: new Date(),
               priority: determineAlertPriority(alert.type, alert.threshold),
               userId: alert.userId
